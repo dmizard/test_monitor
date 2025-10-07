@@ -1,0 +1,24 @@
+[Unit]
+Description=HTTPs Monitoring
+After=network.target
+Wants=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/curl -s -o /dev/null -w "HTTP %%{http_code}\n" --connect-timeout 5 --max-time 10 https://google.com
+Restart=on-failure
+RestartSec=60
+SuccessExitStatus=0
+StandardOutput=null
+StandardError=null
+ExecStopPost=/bin/bash -c 'if [ $EXIT_STATUS -ne 0 ]; then echo "[$(date "+%%Y-%%m-%%d %%H:%%M:%%S")] FAILED - Exit: $EXIT_STATUS" >> /var/log/monitoring.log; fi'
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log
+
+[Install]
+WantedBy=multi-user.target
